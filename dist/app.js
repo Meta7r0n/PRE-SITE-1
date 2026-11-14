@@ -16,6 +16,12 @@
   const storageKey = 'pre-project-draft-v1';
   const planner = $('#planner');
   const form = $('#project-form');
+  const prepareInquiry = window.PRE_INQUIRIES.connect({
+    type: 'homeowner',
+    review: $('[data-step="3"]', form),
+    details: draftData,
+    honeypot: form.elements.website,
+  });
   let lastFocus = null;
   let currentStep = 1;
   let selectedService = '';
@@ -159,7 +165,7 @@
     $$('.planner-progress span').forEach((bar, index) => bar.classList.toggle('active', index < step));
     planner.scrollTop = 0;
     if (moveFocus) {
-      const target = step === 1 ? $('input[name="service"]:checked', form) || $('input[name="service"]', form) : step === 2 ? form.elements.name : $('#download-brief');
+      const target = step === 1 ? $('input[name="service"]:checked', form) || $('input[name="service"]', form) : step === 2 ? form.elements.name : $('#project-summary');
       target.focus({ preventScroll: true });
     }
   }
@@ -194,7 +200,7 @@
 
   function briefText() {
     const d = draftData();
-    return `POWER RANGER ELECTRIC — PROJECT BRIEF\n\nService: ${services[d.service]?.label || 'Not specified'}\nName: ${d.name}\nTown: ${d.town}\nEmail: ${d.email}\nTiming: ${d.timing}\n\nProject details:\n${d.description}\n\n${config.previewMode ? 'Prepared in the website preview. This brief has not been sent and does not book an appointment.' : 'Prepared with the Power Ranger Electric project planner. Saving this brief does not book an appointment.'}`;
+    return `POWER RANGER ELECTRIC — PROJECT BRIEF\n\nService: ${services[d.service]?.label || 'Not specified'}\nName: ${d.name}\nTown: ${d.town}\nEmail: ${d.email}\nTiming: ${d.timing}\n\nProject details:\n${d.description}\n\nPrepared with the Power Ranger Electric project planner.`;
   }
 
   function renderSummary() {
@@ -208,7 +214,6 @@
       row.append(dt, dd); dl.append(row);
     });
     $('#project-summary').replaceChildren(dl);
-    if (config.email) $('#email-brief').href = `mailto:${config.email}?subject=${encodeURIComponent('Project inquiry — ' + services[d.service].label)}&body=${encodeURIComponent(briefText())}`;
   }
 
   function setMenu(open) {
@@ -255,6 +260,7 @@
   $('#review-project').addEventListener('click', () => {
     if (!validateDetails()) return;
     saveDraft(); renderSummary(); showStep(3);
+    prepareInquiry();
   });
   $$('[data-back]').forEach(button => button.addEventListener('click', () => showStep(Number(button.dataset.back))));
   $('#download-brief').addEventListener('click', () => {
@@ -263,14 +269,14 @@
     const link = document.createElement('a'); link.href = url; link.download = 'power-ranger-electric-project-brief.txt';
     document.body.append(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    toast('Your project brief has been downloaded. Nothing has been sent.');
+    toast('Your project brief has been downloaded.');
   });
   $('#copy-brief').addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(briefText()); toast('Project brief copied. Nothing has been sent.'); }
+    try { await navigator.clipboard.writeText(briefText()); toast('Project brief copied.'); }
     catch (_) {
       const input = document.createElement('textarea'); input.value = briefText(); input.style.position = 'absolute'; input.style.opacity = '0';
       planner.append(input); input.select();
-      try { if (!document.execCommand('copy')) throw Error('Copy unavailable'); toast('Project brief copied. Nothing has been sent.'); }
+      try { if (!document.execCommand('copy')) throw Error('Copy unavailable'); toast('Project brief copied.'); }
       catch (_) { toast('Copy is unavailable in this browser. Download the brief instead.'); }
       input.remove(); $('#copy-brief').focus();
     }
@@ -293,8 +299,7 @@
   }));
 
   if (!config.previewMode) {
-    ['preview-banner', 'preview-note', 'planner-preview'].forEach(id => { document.getElementById(id).hidden = true; });
-    $('#summary-note').textContent = config.email ? 'Email opens in your own email app for review and sending. An inquiry is not a confirmed appointment.' : 'Save your brief for a conversation with Power Ranger Electric. This planner does not book an appointment.';
+    ['preview-banner', 'preview-note'].forEach(id => { document.getElementById(id).hidden = true; });
   }
   const licenseNumber = String(config.electricalLicenseNumber || '').trim();
   $$('[data-license-number]').forEach(element => { element.textContent = licenseNumber; });
@@ -313,10 +318,10 @@
     $('#permit-line').textContent = `NJ Business Permit #${config.businessPermitNumber}`;
     $('#permit-line').hidden = false;
   }
-  if (config.email) $('#email-brief').hidden = false;
   const contact = $('#direct-contact');
-  if (config.email) {
-    const link = document.createElement('a'); link.href = `mailto:${config.email}`; link.textContent = config.email; contact.append(link);
+  const contactEmail = ($('#listing-form') && config.realtorEmail) || config.email;
+  if (contactEmail) {
+    const link = document.createElement('a'); link.href = `mailto:${contactEmail}`; link.textContent = contactEmail; contact.append(link);
   }
   if (config.phone) {
     const link = document.createElement('a'); link.href = `tel:${config.phone.replace(/[^\d+]/g, '')}`; link.textContent = config.phone; contact.append(link);

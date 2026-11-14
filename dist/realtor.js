@@ -2,16 +2,19 @@
   'use strict';
   const form = document.querySelector('#listing-form');
   if (!form) return;
-  const config = window.PRE_CONFIG || {};
   const draftKey = 'pre-realtor-inquiry-v1';
   const review = document.querySelector('#listing-review');
   const feedback = document.querySelector('#listing-feedback');
   const error = document.querySelector('#listing-errors');
   const fields = ['agentName', 'brokerage', 'agentEmail', 'agentPhone', 'propertyAddress', 'propertyTown', 'saleStage', 'repairList', 'targetDate', 'datePurpose', 'accessNotes'];
-  const recipient = String(config.realtorEmail || config.email || '').trim();
-  const emailLink = document.querySelector('#listing-email');
   const ongoing = () => form.elements.saleStage.value === 'Future listings / ongoing relationship';
   const values = () => Object.fromEntries(fields.map(key => [key, form.elements[key].value.trim()]));
+  const prepareInquiry = window.PRE_INQUIRIES.connect({
+    type: 'realtor',
+    review,
+    details: values,
+    honeypot: form.elements.website,
+  });
   function message(text) { feedback.textContent = text; }
   function updatePropertyRequirement() {
     for (const key of ['propertyAddress', 'propertyTown']) {
@@ -43,14 +46,8 @@
       row.append(label, detail); list.append(row);
     });
     document.querySelector('#listing-summary').replaceChildren(list);
-    emailLink.hidden = !recipient;
-    if (recipient) {
-      const d = values();
-      const subject = 'Realtor inquiry — ' + (d.propertyAddress || d.brokerage || d.agentName) + (d.propertyTown ? ', ' + d.propertyTown : '');
-      emailLink.href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(briefText())}`;
-      document.querySelector('#listing-review-note').textContent = 'Email opens your email app with this realtor inquiry addressed to Nick. Review and send it there. This page does not automatically send or book an appointment.';
-    }
     form.hidden = true; review.hidden = false; review.focus();
+    prepareInquiry();
   }
   function showForm() { review.hidden = true; form.hidden = false; }
   try {
@@ -65,7 +62,7 @@
   form.addEventListener('submit', event => {
     event.preventDefault(); updatePropertyRequirement();
     let firstInvalid;
-    for (const field of [...form.elements].filter(el => el.matches('input,textarea,select'))) {
+    for (const field of fields.map(name => form.elements[name])) {
       const valid = (!field.required || Boolean(field.value.trim())) && field.checkValidity();
       field.setAttribute('aria-invalid', String(!valid));
       if (!valid && !firstInvalid) firstInvalid = field;
@@ -78,7 +75,7 @@
     try { sessionStorage.removeItem(draftKey); } catch (_) { /* Nothing to clear. */ }
     form.reset(); updatePropertyRequirement(); showForm(); error.textContent = '';
     form.querySelectorAll('[aria-invalid]').forEach(field => field.removeAttribute('aria-invalid'));
-    document.querySelector('#listing-summary').replaceChildren(); emailLink.removeAttribute('href'); emailLink.hidden = true;
+    document.querySelector('#listing-summary').replaceChildren();
     message('Your realtor inquiry draft has been cleared.');
   }
   document.querySelector('#listing-clear').addEventListener('click', clearDraft);
@@ -87,11 +84,10 @@
     const url = URL.createObjectURL(new Blob([briefText()], { type: 'text/plain;charset=utf-8' }));
     const link = document.createElement('a'); link.href = url; link.download = 'power-ranger-electric-realtor-inquiry.txt';
     document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-    message('Realtor inquiry downloaded. Nothing has been sent.');
+    message('Realtor inquiry downloaded.');
   });
   document.querySelector('#listing-copy').addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(briefText()); message('Realtor inquiry copied. Nothing has been sent.'); }
+    try { await navigator.clipboard.writeText(briefText()); message('Realtor inquiry copied.'); }
     catch (_) { message('Copy is unavailable in this browser. Download your inquiry instead.'); }
   });
-  if (recipient) document.querySelector('#listing-delivery-note').textContent = 'Review your inquiry, then open an email to Nick with the property details included. Your email app handles sending.';
 })();
