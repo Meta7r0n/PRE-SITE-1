@@ -2,8 +2,8 @@
   'use strict';
   const endpoint = '/api/inquiries';
   const unavailable = 'Online sending is unavailable. You can copy or download your brief.';
-  const initialStatus = 'Send your inquiry when you’re ready. Nick will reply by email.';
-  const sentStatus = 'Your inquiry was sent. Nick will follow up by email.';
+  const initialStatus = 'Ready? Send this over and I’ll get back to you by email.';
+  const sentStatus = 'Thanks for getting in touch. Your message has been sent, and I’ll reply by email.';
   const verificationError = 'Please complete the verification before sending your inquiry.';
   const deliveryError = 'We couldn’t confirm that your inquiry was sent. Try again or save a copy of your brief.';
   let settingsRequest;
