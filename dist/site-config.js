@@ -7,7 +7,7 @@ window.PRE_CONFIG = Object.freeze({
   realtorEmail: '',
   phone: '',
   // Personal NJ electrical contractor license; never substitute a business permit here.
-  electricalLicenseNumber: '',
+  electricalLicenseNumber: '34EI01933800',
   businessPermitNumber: '',
   primaryDomain: 'prelectricnj.com',
   // Use only actual, owner-selected job photographs: { src, alt, title, description }.
