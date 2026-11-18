@@ -23,7 +23,7 @@ Check both forms at the deployment’s `pages.dev` address. When ready to use th
 | Form | Delivers to | Gmail subject |
 | --- | --- | --- |
 | Residential project planner | `inquiries@prelectricnj.com` | Website inquiry \| Homeowner |
-| Realtor inquiry | `realtors@prelectricnj.com` | Website inquiry \| Realtor |
+| Realtor inquiry | `realtor@prelectricnj.com` | Website inquiry \| Realtor |
 
 1. In [Google Workspace Admin](https://admin.google.com/), open **Directory → Users → Nick → Add Alternate Emails**. Add both addresses as aliases of `nick@prelectricnj.com` if needed. Make sure each can receive mail in Nick’s inbox.
 2. In [Resend Domains](https://resend.com/domains), add `send.prelectricnj.com`. Add the sending DNS records Resend displays in Cloudflare and wait for Resend to verify the subdomain. The function sends as `website@send.prelectricnj.com`. Google Workspace continues to receive mail at `prelectricnj.com`.

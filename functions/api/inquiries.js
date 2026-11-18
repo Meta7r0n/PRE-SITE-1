@@ -95,7 +95,7 @@ function realtorEmail(details) {
   if (listing.saleStage !== futureListings && (!listing.propertyAddress || !listing.propertyTown)) return null;
   if (listing.targetDate && !/^\d{4}-\d{2}-\d{2}$/.test(listing.targetDate)) return null;
   return {
-    to: ['realtors@prelectricnj.com'],
+    to: ['realtor@prelectricnj.com'],
     subject: 'Website inquiry | Realtor',
     reply_to: listing.agentEmail,
     text: [
